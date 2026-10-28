@@ -1,0 +1,44 @@
+name: Build Sophia Full Desktop App (.EXE)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Frontend Visual UI (Next.js)
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Install Root & Backend Dependencies
+        run: |
+          if (Test-Path "backend/package.json") {
+            cd backend
+            npm install
+            cd ..
+          }
+          npm install
+
+      - name: Package Full Desktop Application (.EXE)
+        run: |
+          npx electron-builder --win portable
+
+      - name: Upload Sophia-AI-CRM.exe Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sophia-AI-CRM-Windows-EXE
+          path: dist/*.exe
